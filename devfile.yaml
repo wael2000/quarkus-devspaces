@@ -1,15 +1,17 @@
-schemaVersion: 2.2.0
+schemaVersion: 2.2.2
 metadata:
-  name: kubedock-sample-devfile
+  name: quarkus-quickstart
+projects:
+  - name: quarkus-quickstarts
+    zip:
+      location: http://devspaces-dashboard.devspaces.svc:8080/dashboard/api/airgap-sample/project/download?id=quarkus-rest-api
 components:
   - name: tools
     container:
-      image: quay.io/devfile/universal-developer-image:latest
-      memoryLimit: 8Gi
-      memoryRequest: 1Gi
-      cpuLimit: "2"
-      cpuRequest: 200m
+      image: registry.redhat.io/devspaces/udi-rhel9@sha256:f6315dfc9928d8de20fcbbdd43865e1da8822f3cb922ad61c81ec5f7a0d72f1b
       env:
+        - name: QUARKUS_HTTP_HOST
+          value: 0.0.0.0
         - name: KUBEDOCK_PARAMS
           value: "--reverse-proxy --kubeconfig /home/user/.kube/config --initimage quay.io/agiertli/kubedock:0.13.0"
         - name: USE_JAVA17
@@ -25,26 +27,54 @@ components:
         - name: TESTCONTAINERS_RYUK_DISABLED
           value: 'true'
         - name: TESTCONTAINERS_CHECKS_DISABLE
-          value: 'true'
+          value: 'true'          
       endpoints:
         - exposure: none
           name: kubedock
           protocol: tcp
-          targetPort: 2475
-        - exposure: public
-          name: http-booster
-          protocol: http
-          targetPort: 8080
-          attributes:
-            discoverable: true
-            urlRewriteSupported: true
-        - exposure: internal
+          targetPort: 2475      
+        - exposure: none
           name: debug
-          protocol: http
+          protocol: tcp
           targetPort: 5005
+        - exposure: public
+          name: hello-greeting
+          protocol: https
+          targetPort: 8080
+          path: /hello/greeting/devspaces-user
       volumeMounts:
         - name: m2
           path: /home/user/.m2
+      cpuLimit: '4'
+      cpuRequest: '1'
+      memoryLimit: 8G
+      memoryRequest: 4G
+      mountSources: true
   - name: m2
     volume:
-      size: 10G
+      size: 1G
+commands:
+  - id: 1-package
+    exec:
+      label: 1. Package the application
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/quarkus-quickstarts/getting-started
+      commandLine: mvn package
+      group:
+        kind: build
+        isDefault: true
+  - id: 2-startdev
+    exec:
+      label: 2. Start Development mode (Hot reload + debug)
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/quarkus-quickstarts/getting-started
+      commandLine: mvn compile quarkus:dev
+      group:
+        kind: run
+        isDefault: true
+
+
+
+
+
+
