@@ -1,82 +1,21 @@
-schemaVersion: 2.2.2
+schemaVersion: 2.2.0
+attributes:
+  controller.devfile.io/storage-type: per-workspace
 metadata:
-  name: quarkus-quickstart
-
-projects:
-  - name: quarkus-quickstarts
-    zip:
-      location: http://devspaces-dashboard.devspaces.svc:8080/dashboard/api/airgap-sample/project/download?id=quarkus-rest-api
-
+  name: nested-containers-dev-spaces
 components:
-  - name: tools
-    container:
-      image: registry.redhat.io/devspaces/udi-rhel9@sha256:f6315dfc9928d8de20fcbbdd43865e1da8822f3cb922ad61c81ec5f7a0d72f1b
-      mountSources: true
-      cpuLimit: "4"
-      cpuRequest: "1"
-      memoryLimit: 8G
-      memoryRequest: 4G
-
-      env:
-        - name: QUARKUS_HTTP_HOST
-          value: 0.0.0.0
-        - name: DOCKER_HOST
-          value: unix:///run/podman/podman.sock
-        - name: TESTCONTAINERS_RYUK_DISABLED
-          value: "true"
-
-      endpoints:
-        - exposure: none
-          name: debug
-          protocol: tcp
-          targetPort: 5005
-        - exposure: public
-          name: hello-greeting
-          protocol: https
-          targetPort: 8080
-          path: /hello/greeting/devspaces-user
-
-      volumeMounts:
-        - name: m2
-          path: /home/user/.m2
-        - name: podman-socket
-          path: /run/podman
-
-  - name: m2
-    volume:
-      size: 1G
-
-  - name: podman-socket
-    volume:
-      ephemeral: true
-
-commands:
-  # New init command to create ~/.testcontainers.properties
-  - id: init-testcontainers
-    exec:
-      label: Init Testcontainers config
-      component: tools
-      commandLine: |
-        mkdir -p ~/.testcontainers
-        echo "docker.host=unix:///run/podman/podman.sock" > ~/.testcontainers.properties
-        echo "ryuk.disabled=true" >> ~/.testcontainers.properties
-
-  - id: 1-package
-    exec:
-      label: 1. Package the application
-      component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-quickstarts/getting-started
-      commandLine: mvn package
-      group:
-        kind: build
-        isDefault: true
-
-  - id: 2-startdev
-    exec:
-      label: 2. Start Development mode (Hot reload + debug)
-      component: tools
-      workingDir: ${PROJECTS_ROOT}/quarkus-quickstarts/getting-started
-      commandLine: bash -c "mkdir -p ~/.testcontainers && echo 'docker.host=unix:///run/podman/podman.sock' > ~/.testcontainers.properties && echo 'ryuk.disabled=true' >> ~/.testcontainers.properties && mvn compile quarkus:dev"
-      group:
-        kind: run
-        isDefault: true
+- name: dev-tools
+  container: 
+    image: quay.io/cgruver0/che/ocp-4-20-nested-containers:latest
+    memoryLimit: 8Gi
+    cpuLimit: "2"
+    env:
+    - name: HOME
+      value: "/projects/home"
+    - name: VSCODE_DEFAULT_WORKSPACE
+      value: "/projects/ocp-4-20-nested-containers/vscode.code-workspace"
+    endpoints:
+    - exposure: public
+      name: podman
+      protocol: https
+      targetPort: 8080
