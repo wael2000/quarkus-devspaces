@@ -76,7 +76,7 @@ commands:
       label: 2. Start Development mode (Hot reload + debug)
       component: tools
       workingDir: ${PROJECTS_ROOT}/quarkus-quickstarts/getting-started
-      commandLine: mvn compile quarkus:dev
+      commandLine: bash -c "mkdir -p ~/.testcontainers && echo 'docker.host=unix:///run/podman/podman.sock' > ~/.testcontainers.properties && echo 'ryuk.disabled=true' >> ~/.testcontainers.properties && mvn compile quarkus:dev"
       group:
         kind: run
         isDefault: true
