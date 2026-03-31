@@ -31,7 +31,7 @@ components:
           path: /home/user/.m2
         - name: podman-socket
           path: /var/run/docker.sock
-          subPath: podman.sock          
+          path: podman.sock          
       cpuLimit: '4'
       cpuRequest: '1'
       memoryLimit: 8G
