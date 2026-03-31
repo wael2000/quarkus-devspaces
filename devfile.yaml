@@ -20,11 +20,8 @@ components:
       env:
         - name: QUARKUS_HTTP_HOST
           value: 0.0.0.0
-
-        # IMPORTANT: point to Podman socket, not docker.sock
         - name: DOCKER_HOST
           value: unix:///run/podman/podman.sock
-
         - name: TESTCONTAINERS_RYUK_DISABLED
           value: "true"
 
@@ -42,8 +39,6 @@ components:
       volumeMounts:
         - name: m2
           path: /home/user/.m2
-
-        # Mount directory, not file
         - name: podman-socket
           path: /run/podman
 
@@ -56,6 +51,16 @@ components:
       ephemeral: true
 
 commands:
+  # New init command to create ~/.testcontainers.properties
+  - id: init-testcontainers
+    exec:
+      label: Init Testcontainers config
+      component: tools
+      commandLine: |
+        mkdir -p ~/.testcontainers
+        echo "docker.host=unix:///run/podman/podman.sock" > ~/.testcontainers.properties
+        echo "ryuk.disabled=true" >> ~/.testcontainers.properties
+
   - id: 1-package
     exec:
       label: 1. Package the application
